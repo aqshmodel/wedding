@@ -8,17 +8,20 @@ use App\Models\Media;
 use App\Http\Requests\StoreMediaRequest;
 use App\Services\MediaService;
 use App\Services\ChunkUploadService;
+use App\Services\ZipArchiveService;
 use Illuminate\Support\Facades\Log;
 
 class MediaController extends Controller
 {
     private MediaService $mediaService;
     private ChunkUploadService $chunkService;
+    private ZipArchiveService $zipService;
 
-    public function __construct(MediaService $mediaService, ChunkUploadService $chunkService)
+    public function __construct(MediaService $mediaService, ChunkUploadService $chunkService, ZipArchiveService $zipService)
     {
         $this->mediaService = $mediaService;
         $this->chunkService = $chunkService;
+        $this->zipService = $zipService;
     }
 
     /**
@@ -146,6 +149,27 @@ class MediaController extends Controller
             'success' => true,
             'message' => "Chunk {$chunkIndex} uploaded successfully"
         ]);
+    }
+
+    /**
+     * ZIPファイルをダウンロード（または生成してURLを返す）
+     */
+    public function downloadZip()
+    {
+        try {
+            $zipUrl = $this->zipService->generateZipUrl();
+
+            return response()->json([
+                'success' => true,
+                'url' => $zipUrl
+            ]);
+        } catch (\Exception $e) {
+            Log::error('ZIP Download Error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

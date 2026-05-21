@@ -20,6 +20,7 @@ class AdminController extends Controller
             DB::raw("COUNT(*) as total_count")
         )
         ->whereIn('type', ['image', 'video'])
+        ->whereNotIn('uploader_name', ['塚田崇博', '塚田友里'])
         ->groupBy('uploader_uuid', 'uploader_name')
         ->orderByDesc('total_count')
         ->get();
@@ -30,6 +31,7 @@ class AdminController extends Controller
             'uploader_name',
             DB::raw("SUM(likes_count) as total_likes")
         )
+        ->whereNotIn('uploader_name', ['塚田崇博', '塚田友里'])
         ->groupBy('uploader_uuid', 'uploader_name')
         ->orderByDesc('total_likes')
         ->get();

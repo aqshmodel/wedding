@@ -3,7 +3,6 @@ import { X, Heart, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getStorageUrl, API_URL } from '../utils/api';
 import type { Media } from '../types';
 import { getGuestUuid } from '../utils/storage';
-import { saveAs } from 'file-saver';
 
 interface MediaDetailModalProps {
   media: Media;
@@ -64,7 +63,18 @@ const MediaDetailModal: React.FC<MediaDetailModalProps> = ({ media, onClose, onL
     if (!response.ok) throw new Error('Network error');
     const blob = await response.blob();
     const extension = media.type === 'video' ? 'mp4' : 'jpg'; // 簡易的な拡張子判定
-    saveAs(blob, `wedding_${media.uploader_name}_${media.id}.${extension}`);
+    const filename = `wedding_${media.uploader_name}_${media.id}.${extension}`;
+    
+    // aタグを作成してダウンロード
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
   };
 
   const handleLike = async () => {

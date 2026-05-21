@@ -4,7 +4,7 @@ import api from '../utils/api';
 export const useNewPostsNotifier = (currentTotalPosts: number) => {
   const [hasNewPosts, setHasNewPosts] = useState(false);
   const etagRef = useRef<string | null>(null);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     // 最初の投稿数が0なら通知は出さない

@@ -55,6 +55,7 @@ class MediaService
                 DB::raw("COUNT(*) as total_count")
             )
             ->whereIn('type', ['image', 'video'])
+            ->whereNotIn('uploader_name', ['塚田崇博', '塚田友里'])
             ->groupBy('uploader_uuid', 'uploader_name')
             ->orderByDesc('total_count')
             ->first(); // 1位だけ取得
@@ -69,6 +70,7 @@ class MediaService
                     DB::raw("COUNT(*) as total_count")
                 )
                 ->whereIn('type', ['image', 'video'])
+                ->whereNotIn('uploader_name', ['塚田崇博', '塚田友里'])
                 ->groupBy('uploader_uuid', 'uploader_name')
                 ->having('total_count', '=', $topCount)
                 ->get();
