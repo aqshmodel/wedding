@@ -21,13 +21,36 @@ class MediaService
         $thumbnailDbPath = null;
 
         if ($file) {
-            $path = $file->store('media', 'uploads');
-
             if ($data['type'] === 'image') {
-                $thumbnailDbPath = $this->generateThumbnail($file, $path);
-            } elseif ($data['type'] === 'video' && $thumbnailFile) {
-                // フロントエンドから送られてきたサムネイル画像を保存する
-                $thumbnailDbPath = $this->generateThumbnail($thumbnailFile, $path);
+                try {
+                    $manager = new ImageManager(new Driver());
+                    $image = $manager->decode($file->getRealPath());
+                    
+                    $mediaDir = public_path('uploads/media');
+                    if (!File::exists($mediaDir)) {
+                        File::makeDirectory($mediaDir, 0755, true);
+                    }
+                    
+                    // EXIF等のプロファイルを削除し、新しいJPEGとして保存
+                    $filename = uniqid() . '_' . time() . '.jpg';
+                    $fullPath = $mediaDir . '/' . $filename;
+                    $image->save($fullPath, 90);
+                    $path = 'media/' . $filename;
+                    
+                    // オリジナルファイルを渡すとEXIFが残っている可能性があるため、保存後のパスのファイルを元にサムネイルを生成するのが本来は安全ですが、
+                    // generateThumbnail内でも再度デコードしているためEXIFは消えます。
+                    $thumbnailDbPath = $this->generateThumbnail($file, $path);
+                } catch (\Exception $e) {
+                    \Log::error('Image processing failed: ' . $e->getMessage());
+                    // フォールバック
+                    $path = $file->store('media', 'uploads');
+                    $thumbnailDbPath = $this->generateThumbnail($file, $path);
+                }
+            } else {
+                $path = $file->store('media', 'uploads');
+                if ($data['type'] === 'video' && $thumbnailFile) {
+                    $thumbnailDbPath = $this->generateThumbnail($thumbnailFile, $path);
+                }
             }
         }
 
