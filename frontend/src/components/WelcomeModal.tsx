@@ -51,7 +51,7 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({ onClose }) => {
 
           <div className="space-y-4">
             <div className="flex items-start gap-3">
-              <div className="bg-blue-100 p-2 rounded-full text-blue-500 shrink-0 mt-0.5">
+              <div className="bg-tiffany/10 p-2 rounded-full text-tiffany shrink-0 mt-0.5">
                 <PlusCircle size={18} />
               </div>
               <div>
