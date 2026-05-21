@@ -52,7 +52,7 @@ class MediaController extends Controller
                 'total_likes' => $totalLikes
             ]);
         } else {
-            $media = $query->latest()->paginate(20);
+            $media = $query->latest()->paginate(21);
             $responseArray = $media->toArray();
             $responseArray['total_likes'] = $totalLikes;
             return response()->json($responseArray);

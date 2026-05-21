@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Loader2, CheckCircle2 } from 'lucide-react';
 import { getGuestUuid } from '../utils/storage';
 import UploadModal from './UploadModal';
@@ -15,18 +15,20 @@ import MediaGrid from './MainView/MediaGrid';
 import MessageList from './MainView/MessageList';
 
 const MainView: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'images' | 'videos' | 'messages'>('images');
+  type TabType = 'images' | 'videos' | 'messages';
+  const [activeTab, setActiveTab] = useState<TabType>('images');
   const [guestSideFilter, setGuestSideFilter] = useState<'all' | 'groom' | 'bride'>('all');
   const [sortOrder, setSortOrder] = useState<'newest' | 'popular'>('newest');
   
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isSlideshowOpen, setIsSlideshowOpen] = useState(false);
-  const [mediaList, setMediaList] = useState<Media[]>([]);
   const [selectedMedia, setSelectedMedia] = useState<Media | null>(null);
-  const [isDownloading, setIsDownloading] = useState(false);
   
-  const [currentPage, setCurrentPage] = useState(1);
-  const [hasMore, setHasMore] = useState(false);
+  // タブごとのデータ管理
+  const [mediaData, setMediaData] = useState<Record<TabType, Media[]>>({ images: [], videos: [], messages: [] });
+  const [pageData, setPageData] = useState<Record<TabType, number>>({ images: 1, videos: 1, messages: 1 });
+  const [hasMoreData, setHasMoreData] = useState<Record<TabType, boolean>>({ images: false, videos: false, messages: false });
+  
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [totalLikes, setTotalLikes] = useState(0);
 
@@ -36,8 +38,9 @@ const MainView: React.FC = () => {
   });
   const { isDownloading, handleBatchDownload } = useBatchDownload();
 
-  // フィルターとソートを適用
-  const filteredMediaList = mediaList.filter(m => {
+  // フィルターとソートを適用 (現在のアクティブタブのデータに対して)
+  const currentMediaList = mediaData[activeTab];
+  const filteredMediaList = currentMediaList.filter(m => {
     if (guestSideFilter === 'all') return true;
     return m.guest_side === guestSideFilter;
   }).sort((a, b) => {
@@ -48,60 +51,75 @@ const MainView: React.FC = () => {
     return b.id - a.id;
   });
 
-  const fetchMedia = async (page = 1, isLoadMore = false) => {
+  const fetchMedia = async (page = 1, isLoadMore = false, type: TabType = 'images') => {
     try {
       if (isLoadMore) setIsLoadingMore(true);
       const guestUuid = getGuestUuid();
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://wedding.aqsh.co.jp/api'}/media?guest_uuid=${guestUuid}&page=${page}`);
+      const apiType = type === 'images' ? 'image' : type === 'videos' ? 'video' : 'message';
+      
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://wedding.aqsh.co.jp/api'}/media?guest_uuid=${guestUuid}&page=${page}&type=${apiType}`);
       const responseData = await response.json();
       const data = responseData.data ? responseData.data : responseData;
       
       const newMedia = Array.isArray(data) ? data : [];
       if (isLoadMore) {
-        setMediaList(prev => {
-          const existingIds = new Set(prev.map(m => m.id));
+        setMediaData(prev => {
+          const existingIds = new Set(prev[type].map(m => m.id));
           const uniqueNew = newMedia.filter(m => !existingIds.has(m.id));
-          return [...prev, ...uniqueNew];
+          return { ...prev, [type]: [...prev[type], ...uniqueNew] };
         });
       } else {
-        setMediaList(newMedia);
+        setMediaData(prev => ({ ...prev, [type]: newMedia }));
       }
 
       if (responseData.current_page && responseData.last_page) {
-        setHasMore(responseData.current_page < responseData.last_page);
+        setHasMoreData(prev => ({ ...prev, [type]: responseData.current_page < responseData.last_page }));
       } else {
-        setHasMore(false);
+        setHasMoreData(prev => ({ ...prev, [type]: false }));
       }
+      
       if (responseData.total_likes !== undefined) {
         setTotalLikes(responseData.total_likes);
       }
       
-      setCurrentPage(page);
+      setPageData(prev => ({ ...prev, [type]: page }));
     } catch (error) {
-      console.error('Failed to fetch media:', error);
+      console.error(`Failed to fetch media for ${type}:`, error);
     } finally {
       if (isLoadMore) setIsLoadingMore(false);
     }
   };
 
   useEffect(() => {
-    fetchMedia(1, false);
+    // 初回マウント時、まず images を取得し、裏で他のタブもプリロード
+    fetchMedia(1, false, 'images').then(() => {
+      fetchMedia(1, false, 'videos');
+      fetchMedia(1, false, 'messages');
+    });
   }, []);
 
+  // タブ切り替え時にデータが空なら念のため取得
   useEffect(() => {
-    fetchMedia(1, false);
-  }, []);
+    if (mediaData[activeTab].length === 0) {
+      fetchMedia(1, false, activeTab);
+    }
+  }, [activeTab]);
 
   const handleLikeChange = (mediaId: number, isLiked: boolean, newCount: number) => {
-    setMediaList(prev => {
+    setMediaData(prev => {
       let diff = 0;
-      const next = prev.map(m => {
-        if (m.id === mediaId) {
-          diff = newCount - m.likes_count;
-          return { ...m, is_liked: isLiked, likes_count: newCount };
-        }
-        return m;
+      const next = { ...prev };
+      
+      (Object.keys(next) as TabType[]).forEach(key => {
+        next[key] = next[key].map(m => {
+          if (m.id === mediaId) {
+            diff = newCount - m.likes_count;
+            return { ...m, is_liked: isLiked, likes_count: newCount };
+          }
+          return m;
+        });
       });
+      
       setTotalLikes(t => t + diff);
       return next;
     });
@@ -134,11 +152,11 @@ const MainView: React.FC = () => {
   return (
     <div className="min-h-screen bg-white max-w-[1000px] mx-auto relative pb-20 shadow-xl overflow-hidden">
       <HeaderProfile 
-        mediaCount={mediaList.length}
+        mediaCount={mediaData['images'].length + mediaData['videos'].length + mediaData['messages'].length}
         totalLikes={totalLikes}
         isDownloading={isDownloading}
-        isMediaEmpty={filteredMediaList.length === 0}
-        onBatchDownload={() => handleBatchDownload(filteredMediaList)}
+        isMediaEmpty={mediaData['images'].length === 0}
+        onBatchDownload={() => handleBatchDownload(mediaData['images'])}
         onOpenSlideshow={() => setIsSlideshowOpen(true)}
       />
 
@@ -156,10 +174,10 @@ const MainView: React.FC = () => {
         {activeTab === 'messages' && <MessageList mediaList={filteredMediaList} onLikeChange={handleLikeChange} />}
 
         {/* Load More Button */}
-        {hasMore && (
+        {hasMoreData[activeTab] && (
           <div className="flex justify-center mt-8 mb-4">
             <button
-              onClick={() => fetchMedia(currentPage + 1, true)}
+              onClick={() => fetchMedia(pageData[activeTab] + 1, true, activeTab)}
               disabled={isLoadingMore}
               className="px-6 py-2 bg-gray-100 text-gray-700 rounded-full font-medium text-sm hover:bg-gray-200 transition-colors disabled:opacity-50 flex items-center shadow-sm"
             >
