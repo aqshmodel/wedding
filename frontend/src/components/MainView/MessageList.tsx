@@ -98,9 +98,9 @@ const MessageList: React.FC<MessageListProps> = ({ mediaList, onLikeChange, onDe
 
   if (feedPosts.length === 0) {
     return (
-      <div className="text-center text-gray-500 py-16">
-        <p className="mb-2">まだメッセージはありません</p>
-        <p className="text-sm">アップロード時にメッセージを添えると<br/>ここに表示されます</p>
+      <div className="flex flex-col items-center justify-center py-32 text-gray-400">
+        <p className="mb-2 font-medium">まだメッセージがありません</p>
+        <p className="text-sm">最初のお祝いメッセージをお待ちしています！</p>
       </div>
     );
   }

@@ -12,6 +12,15 @@ interface MediaGridProps {
 const MediaGrid: React.FC<MediaGridProps> = ({ mediaList, type, onMediaClick }) => {
   const filteredList = mediaList.filter(m => m.type === type);
 
+  if (filteredList.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-32 text-gray-400">
+        <p className="mb-2 font-medium">まだ投稿がありません</p>
+        <p className="text-sm">最初の投稿をお待ちしています！</p>
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-3 gap-1">
       {filteredList.map((media) => (
