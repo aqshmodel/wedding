@@ -22,20 +22,20 @@ class ZipArchiveService
         $latestId = Cache::get('latest_media_id', 0);
         $fileName = "wedding_photos_{$latestId}.zip";
         
-        // 保存先のパス (publicディスク)
-        $directory = 'archives';
-        $fullPath = Storage::disk('public')->path("{$directory}/{$fileName}");
+        // 保存先のパス (public/uploads/archives)
+        $directory = public_path('uploads/archives');
+        $fullPath = $directory . '/' . $fileName;
         
         // 2. すでに同じIDのZIPが存在する場合は、それを返す（キャッシュヒット）
-        if (Storage::disk('public')->exists("{$directory}/{$fileName}")) {
-            return Storage::disk('public')->url("{$directory}/{$fileName}");
+        if (file_exists($fullPath)) {
+            return asset("uploads/archives/{$fileName}");
         }
 
         // --- ここから下はZIPが存在しない場合（新規作成） ---
 
         // ディレクトリが存在しなければ作成
-        if (!Storage::disk('public')->exists($directory)) {
-            Storage::disk('public')->makeDirectory($directory);
+        if (!file_exists($directory)) {
+            mkdir($directory, 0755, true);
         }
 
         // アトミックな生成のための排他ロック (300秒)
@@ -56,8 +56,8 @@ class ZipArchiveService
 
         try {
             // もし待機中に別のプロセスが作り終えていたらそれを返す
-            if (Storage::disk('public')->exists("{$directory}/{$fileName}")) {
-                return Storage::disk('public')->url("{$directory}/{$fileName}");
+            if (file_exists($fullPath)) {
+                return asset("uploads/archives/{$fileName}");
             }
 
             // 3. 対象となる画像ファイル一覧を取得
@@ -73,7 +73,7 @@ class ZipArchiveService
 
             // 4. 一時ファイルとしてZIPを作成
             $tempFileName = "temp_{$latestId}_" . uniqid() . ".zip";
-            $tempFullPath = Storage::disk('public')->path("{$directory}/{$tempFileName}");
+            $tempFullPath = $directory . '/' . $tempFileName;
 
             $zip = new ZipArchive();
             if ($zip->open($tempFullPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
@@ -85,11 +85,11 @@ class ZipArchiveService
             foreach ($mediaList as $media) {
                 if (empty($media->file_path)) continue;
 
-                // DB上の "/storage/media/xxx.jpg" を "media/xxx.jpg" に変換
-                $relativePath = preg_replace('#^/?storage/#', '', $media->file_path);
+                // ファイル名のみ抽出し、public/uploads/media/ 直下のパスを作る
+                $basename = basename($media->file_path);
+                $sourcePath = public_path("uploads/media/{$basename}");
 
-                if ($relativePath && Storage::disk('public')->exists($relativePath)) {
-                    $sourcePath = Storage::disk('public')->path($relativePath);
+                if (file_exists($sourcePath)) {
                     // ZIP内でのファイル名 (例: 塚田崇博_1.jpg)
                     $ext = pathinfo($sourcePath, PATHINFO_EXTENSION);
                     if (empty($ext)) $ext = 'jpg';
@@ -119,7 +119,7 @@ class ZipArchiveService
             // 7. 古いZIPファイルのクリーンアップ処理 (最新のファイル以外を削除)
             $this->cleanupOldArchives($directory, $fileName);
 
-            return Storage::disk('public')->url("{$directory}/{$fileName}");
+            return asset("uploads/archives/{$fileName}");
 
         } finally {
             // ロックを解放
@@ -133,12 +133,16 @@ class ZipArchiveService
     private function cleanupOldArchives(string $directory, string $currentFileName)
     {
         try {
-            $files = Storage::disk('public')->files($directory);
-            foreach ($files as $file) {
-                $basename = basename($file);
+            $files = scandir($directory);
+            foreach ($files as $basename) {
+                if ($basename === '.' || $basename === '..') continue;
+                
                 // 最新のZIPファイルでなく、かつZIP拡張子であれば削除
                 if ($basename !== $currentFileName && str_ends_with($basename, '.zip')) {
-                    Storage::disk('public')->delete($file);
+                    $filePath = $directory . '/' . $basename;
+                    if (is_file($filePath)) {
+                        unlink($filePath);
+                    }
                 }
             }
         } catch (Exception $e) {
