@@ -81,22 +81,38 @@ class ZipArchiveService
             }
 
             // 5. ファイルをZIPに追加
+            $addedCount = 0;
             foreach ($mediaList as $media) {
-                if ($media->file_path && Storage::disk('public')->exists($media->file_path)) {
-                    $sourcePath = Storage::disk('public')->path($media->file_path);
+                if (empty($media->file_path)) continue;
+
+                // DB上の "/storage/media/xxx.jpg" を "media/xxx.jpg" に変換
+                $relativePath = preg_replace('#^/?storage/#', '', $media->file_path);
+
+                if ($relativePath && Storage::disk('public')->exists($relativePath)) {
+                    $sourcePath = Storage::disk('public')->path($relativePath);
                     // ZIP内でのファイル名 (例: 塚田崇博_1.jpg)
                     $ext = pathinfo($sourcePath, PATHINFO_EXTENSION);
                     if (empty($ext)) $ext = 'jpg';
                     $zipEntryName = "{$media->uploader_name}_{$media->id}.{$ext}";
                     
-                    $zip->addFile($sourcePath, $zipEntryName);
+                    if ($zip->addFile($sourcePath, $zipEntryName)) {
+                        $addedCount++;
+                    }
                 }
             }
 
             // ZIPを閉じる（ここで実際にファイルが書き込まれる）
             $zip->close();
 
+            if ($addedCount === 0) {
+                // PHPのZipArchiveは中身が空だとファイルを出力しないため、ここでエラーにする
+                throw new Exception("ZIPに追加できる有効な画像ファイルが見つかりませんでした。");
+            }
+
             // 6. アトミックなリネーム (競合を防ぐ)
+            if (!file_exists($tempFullPath)) {
+                throw new Exception("ZIP一時ファイルの生成に失敗しました。");
+            }
             // renameはOSレベルでアトミックなので、書き込み途中の壊れたファイルがユーザーに渡ることはない
             rename($tempFullPath, $fullPath);
 
