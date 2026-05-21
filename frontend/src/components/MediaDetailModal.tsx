@@ -138,27 +138,25 @@ const MediaDetailModal: React.FC<MediaDetailModalProps> = ({ media, onClose, onL
 
   return (
     <div 
-      className="fixed inset-0 bg-black/90 z-[110] flex flex-col"
+      className="fixed inset-0 bg-black z-[110] flex flex-col"
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEndEvent}
     >
-      {/* Header */}
-      <div className="flex justify-end p-4">
-        <button 
-          onClick={onClose}
-          className="text-white/80 hover:text-white bg-black/50 p-2 rounded-full backdrop-blur-sm transition-colors"
-        >
-          <X size={28} />
-        </button>
-      </div>
+      {/* 閉じるボタンをAbsolute配置 */}
+      <button 
+        onClick={onClose}
+        className="absolute top-4 right-4 text-white/80 hover:text-white bg-black/40 p-2 rounded-full backdrop-blur-sm transition-colors z-[120]"
+      >
+        <X size={28} />
+      </button>
 
-      {/* Media Content */}
-      <div className="flex-1 flex items-center justify-center p-4 min-h-0 relative">
+      {/* Media Content (画面全体に表示) */}
+      <div className="absolute inset-0 flex items-center justify-center">
         {hasPrev && (
           <button 
             onClick={(e) => { e.stopPropagation(); onNavigate && onNavigate('prev'); }}
-            className="absolute left-4 hidden md:flex items-center justify-center w-12 h-12 rounded-full bg-black/50 text-white hover:bg-black/80 transition-colors z-10"
+            className="absolute left-4 hidden md:flex items-center justify-center w-12 h-12 rounded-full bg-black/50 text-white hover:bg-black/80 transition-colors z-[120]"
           >
             <ChevronLeft size={32} />
           </button>
@@ -168,7 +166,7 @@ const MediaDetailModal: React.FC<MediaDetailModalProps> = ({ media, onClose, onL
           <video 
             key={media.file_path}
             src={getStorageUrl(media.file_path!)} 
-            className="max-w-full max-h-full object-contain" 
+            className="w-full h-full object-contain" 
             controls 
             autoPlay 
             playsInline
@@ -178,22 +176,22 @@ const MediaDetailModal: React.FC<MediaDetailModalProps> = ({ media, onClose, onL
             key={media.file_path}
             src={getStorageUrl(media.file_path!)} 
             alt={media.message || "写真詳細"} 
-            className="max-w-full max-h-full object-contain select-none"
+            className="w-full h-full object-contain select-none"
           />
         )}
 
         {hasNext && (
           <button 
             onClick={(e) => { e.stopPropagation(); onNavigate && onNavigate('next'); }}
-            className="absolute right-4 hidden md:flex items-center justify-center w-12 h-12 rounded-full bg-black/50 text-white hover:bg-black/80 transition-colors z-10"
+            className="absolute right-4 hidden md:flex items-center justify-center w-12 h-12 rounded-full bg-black/50 text-white hover:bg-black/80 transition-colors z-[120]"
           >
             <ChevronRight size={32} />
           </button>
         )}
       </div>
 
-      {/* Info Bottom Bar */}
-      <div className="bg-gradient-to-t from-black/80 via-black/50 to-transparent p-6 text-white pb-safe">
+      {/* Info Bottom Bar (Absolute配置で画像下部に被せる) */}
+      <div className="absolute bottom-0 w-full bg-gradient-to-t from-black/90 via-black/60 to-transparent p-6 text-white pb-safe z-[120]">
         <div className="max-w-3xl mx-auto">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1 min-w-0">
