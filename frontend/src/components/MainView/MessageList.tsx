@@ -127,16 +127,6 @@ const MessageList: React.FC<MessageListProps> = ({ mediaList, onLikeChange, onDe
                     {post.guest_side === 'groom' ? '新郎側ゲスト' : '新婦側ゲスト'}
                   </p>
                 </div>
-                {post.uploader_uuid === guestUuid && (
-                  <button
-                    onClick={() => handleDelete(post)}
-                    disabled={isDeleting}
-                    className="ml-auto text-gray-400 hover:text-red-500 transition-colors p-2"
-                    title="削除"
-                  >
-                    <Trash2 size={20} />
-                  </button>
-                )}
               </div>
 
               {/* Media Carousel */}
@@ -180,27 +170,40 @@ const MessageList: React.FC<MessageListProps> = ({ mediaList, onLikeChange, onDe
 
               {/* Actions & Message */}
               <div className="px-3 py-2">
-                <div className="flex items-center mb-2">
-                  <button 
-                    onClick={() => handleLike(post)}
-                    className="group relative focus:outline-none transition-transform active:scale-90 mr-2"
-                  >
-                    <Heart 
-                      size={26} 
-                      className={`transition-colors ${
-                        post.primaryMedia.is_liked ? 'fill-pink-500 text-pink-500' : 'text-gray-800 group-hover:text-gray-500'
-                      }`}
-                    />
-                    {animatingLikeId === post.primaryMedia.id && (
+                <div className="flex items-center mb-3">
+                  <div className="flex items-center">
+                    <button 
+                      onClick={() => handleLike(post)}
+                      className="group relative focus:outline-none transition-transform active:scale-90 mr-2"
+                    >
                       <Heart 
-                        size={36} 
-                        className="absolute inset-0 -top-1 -left-1 text-pink-500 fill-pink-500 animate-[ping_1s_cubic-bezier(0,0,0.2,1)_forwards] opacity-0 pointer-events-none"
+                        size={26} 
+                        className={`transition-colors ${
+                          post.primaryMedia.is_liked ? 'fill-pink-500 text-pink-500' : 'text-gray-800 group-hover:text-gray-500'
+                        }`}
                       />
-                    )}
-                  </button>
-                  <span className="font-bold text-sm text-gray-900">
-                    {post.primaryMedia.likes_count}件の「いいね」
-                  </span>
+                      {animatingLikeId === post.primaryMedia.id && (
+                        <Heart 
+                          size={36} 
+                          className="absolute inset-0 -top-1 -left-1 text-pink-500 fill-pink-500 animate-[ping_1s_cubic-bezier(0,0,0.2,1)_forwards] opacity-0 pointer-events-none"
+                        />
+                      )}
+                    </button>
+                    <span className="font-bold text-sm text-gray-900">
+                      {post.primaryMedia.likes_count}件の「いいね」
+                    </span>
+                  </div>
+
+                  {post.uploader_uuid === guestUuid && (
+                    <button
+                      onClick={() => handleDelete(post)}
+                      disabled={isDeleting}
+                      className="ml-auto flex items-center text-gray-400 hover:text-red-500 transition-colors px-2 py-1"
+                      title="削除"
+                    >
+                      <Trash2 size={20} />
+                    </button>
+                  )}
                 </div>
 
                 <div className="text-sm leading-snug">
