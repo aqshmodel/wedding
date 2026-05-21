@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import api from '../utils/api';
 import { getGuestUuid, getGuestSide } from '../utils/storage';
 import { generateVideoThumbnail } from '../utils/videoThumbnail';
+import { ChunkUploader } from '../utils/chunkUploader';
 
 export interface UploadQueueItem {
   files: File[];
@@ -50,18 +51,34 @@ export const useBackgroundUpload = (onComplete: () => void) => {
           formData.append('guest_side', getGuestSide() || 'groom');
           
           const isVideo = file.type.startsWith('video/');
-          formData.append('type', isVideo ? 'video' : 'image');
+          const sessionId = Date.now().toString() + Math.random().toString(36).substring(7);
 
           if (isVideo) {
+            // --- チャンクアップロード Strategy ---
+            let thumbnailFile: File | undefined;
             const thumbnailBlob = await generateVideoThumbnail(file);
             if (thumbnailBlob) {
-              formData.append('thumbnail_file', thumbnailBlob, 'thumb.jpg');
+              thumbnailFile = new File([thumbnailBlob], 'thumb.jpg', { type: 'image/jpeg' });
             }
-          }
 
-          await api.post('/media', formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
-          });
+            const chunkUploader = new ChunkUploader({
+              file,
+              thumbnailFile,
+              sessionId,
+              uploaderName: uploadQueue.name,
+              uploaderUuid: getGuestUuid(),
+              guestSide: getGuestSide() || 'groom',
+              message: uploadQueue.message
+            });
+
+            await chunkUploader.upload();
+          } else {
+            // --- 通常アップロード Strategy (画像) ---
+            formData.append('type', 'image');
+            await api.post('/media', formData, {
+              headers: { 'Content-Type': 'multipart/form-data' }
+            });
+          }
         }
       } catch (err) {
         console.error('Background upload error', err);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Download, Loader2, Play } from 'lucide-react';
 import api from '../../utils/api';
+import BestCameraman from './BestCameraman';
 
 interface HeaderProfileProps {
   mediaCount: number;
@@ -85,6 +86,9 @@ const HeaderProfile: React.FC<HeaderProfileProps> = ({
         <p>本日はご参加ありがとうございます！</p>
         <p>皆様が撮ってくれた写真や動画をアップロードしてください</p>
         <p>メッセージのみの投稿も大歓迎です！</p>
+        
+        <BestCameraman />
+
         {(openingVisible || profileVisible) && (
           <div className="mt-4 space-y-3">
             {openingVisible && (

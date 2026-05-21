@@ -21,6 +21,7 @@ const AdminView: React.FC = () => {
   const [ranking, setRanking] = useState<RankingData | null>(null);
   const [openingVisible, setOpeningVisible] = useState(false);
   const [profileVisible, setProfileVisible] = useState(false);
+  const [bestCameramanVisible, setBestCameramanVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -34,6 +35,7 @@ const AdminView: React.FC = () => {
         setRanking(rankingRes.data);
         setOpeningVisible(settingsRes.data.opening_movie_visible);
         setProfileVisible(settingsRes.data.profile_movie_visible);
+        setBestCameramanVisible(settingsRes.data.best_cameraman_visible);
       } catch (error) {
         console.error('Failed to fetch admin data', error);
       } finally {
@@ -63,10 +65,25 @@ const AdminView: React.FC = () => {
     setProfileVisible(newValue);
     setIsSaving(true);
     try {
-      await api.post('/settings', { opening_movie_visible: openingVisible, profile_movie_visible: newValue });
+      await api.post('/settings', { opening_movie_visible: openingVisible, profile_movie_visible: newValue, best_cameraman_visible: bestCameramanVisible });
     } catch (error) {
       console.error('Failed to update settings', error);
       setProfileVisible(!newValue); // revert
+      alert('設定の保存に失敗しました');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleToggleBestCameraman = async () => {
+    const newValue = !bestCameramanVisible;
+    setBestCameramanVisible(newValue);
+    setIsSaving(true);
+    try {
+      await api.post('/settings', { opening_movie_visible: openingVisible, profile_movie_visible: profileVisible, best_cameraman_visible: newValue });
+    } catch (error) {
+      console.error('Failed to update settings', error);
+      setBestCameramanVisible(!newValue); // revert
       alert('設定の保存に失敗しました');
     } finally {
       setIsSaving(false);
@@ -138,6 +155,25 @@ const AdminView: React.FC = () => {
                 <span
                   className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
                     profileVisible ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+            <div className="flex items-center justify-between py-2 border-t border-gray-50">
+              <div>
+                <p className="font-medium text-gray-900">ベストカメラマン発表</p>
+                <p className="text-sm text-gray-500 mt-1">フロントエンド画面に最多投稿者の発表枠を表示します</p>
+              </div>
+              <button
+                onClick={handleToggleBestCameraman}
+                disabled={isSaving}
+                className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-tiffany focus:ring-offset-2 ${
+                  bestCameramanVisible ? 'bg-tiffany' : 'bg-gray-200'
+                } ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    bestCameramanVisible ? 'translate-x-5' : 'translate-x-0'
                   }`}
                 />
               </button>

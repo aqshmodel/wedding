@@ -17,6 +17,7 @@ class SettingsController extends Controller
         return response()->json([
             'opening_movie_visible' => $settings->get('opening_movie_visible', 'false') === 'true',
             'profile_movie_visible' => $settings->get('profile_movie_visible', 'false') === 'true',
+            'best_cameraman_visible' => $settings->get('best_cameraman_visible', 'false') === 'true',
         ]);
     }
 
@@ -25,6 +26,7 @@ class SettingsController extends Controller
         $request->validate([
             'opening_movie_visible' => 'required|boolean',
             'profile_movie_visible' => 'required|boolean',
+            'best_cameraman_visible' => 'required|boolean',
         ]);
 
         Setting::updateOrCreate(
@@ -34,6 +36,10 @@ class SettingsController extends Controller
         Setting::updateOrCreate(
             ['key' => 'profile_movie_visible'],
             ['value' => $request->profile_movie_visible ? 'true' : 'false']
+        );
+        Setting::updateOrCreate(
+            ['key' => 'best_cameraman_visible'],
+            ['value' => $request->best_cameraman_visible ? 'true' : 'false']
         );
 
         return response()->json(['success' => true]);

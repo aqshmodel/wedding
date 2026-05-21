@@ -7,6 +7,8 @@ import MediaDetailModal from './MediaDetailModal';
 import type { Media } from '../types';
 import { useBackgroundUpload } from '../hooks/useBackgroundUpload';
 import { useBatchDownload } from '../hooks/useBatchDownload';
+import { useNewPostsNotifier } from '../hooks/useNewPostsNotifier';
+import NewPostsBadge from './MainView/NewPostsBadge';
 
 import HeaderProfile from './MainView/HeaderProfile';
 import TabNavigation from './MainView/TabNavigation';
@@ -38,6 +40,13 @@ const MainView: React.FC = () => {
     fetchMedia(1, false);
   });
   const { isDownloading, handleBatchDownload } = useBatchDownload();
+  const { hasNewPosts, resetNotifier } = useNewPostsNotifier(totalPosts);
+
+  const handleNewPostsClick = () => {
+    resetNotifier();
+    fetchMedia(1, false, activeTab);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // フィルターとソートを適用 (現在のアクティブタブのデータに対して)
   const currentMediaList = mediaData[activeTab];
@@ -155,6 +164,7 @@ const MainView: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white max-w-[1000px] mx-auto relative pb-20 shadow-xl overflow-hidden">
+      <NewPostsBadge show={hasNewPosts} onClick={handleNewPostsClick} />
       <HeaderProfile 
         mediaCount={totalPosts}
         totalLikes={totalLikes}

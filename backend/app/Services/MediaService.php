@@ -7,6 +7,8 @@ use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
 use Illuminate\Support\Facades\File;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class MediaService
 {
@@ -29,7 +31,7 @@ class MediaService
             }
         }
 
-        return Media::create([
+        $media = Media::create([
             'type' => $data['type'],
             'file_path' => $path ? '/uploads/' . $path : null,
             'thumbnail_path' => $thumbnailDbPath,
@@ -38,6 +40,44 @@ class MediaService
             'uploader_uuid' => $data['uploader_uuid'],
             'guest_side' => $data['guest_side'],
         ]);
+
+        // 最新のメディアIDをキャッシュに保存（通知用）
+        Cache::put('latest_media_id', $media->id);
+
+        // ベストカメラマンの集計をキャッシュに保存（マテリアライズド・キャッシュ）
+        // ※画像・動画の投稿があった場合のみ再集計する
+        if (in_array($data['type'], ['image', 'video'])) {
+            $bestCameraman = Media::select(
+                'uploader_uuid',
+                'uploader_name',
+                DB::raw("SUM(CASE WHEN type='image' THEN 1 ELSE 0 END) as image_count"),
+                DB::raw("SUM(CASE WHEN type='video' THEN 1 ELSE 0 END) as video_count"),
+                DB::raw("COUNT(*) as total_count")
+            )
+            ->whereIn('type', ['image', 'video'])
+            ->groupBy('uploader_uuid', 'uploader_name')
+            ->orderByDesc('total_count')
+            ->first(); // 1位だけ取得
+
+            if ($bestCameraman) {
+                // 同率1位を取得する場合は get() して filter するなど高度な処理になるが、
+                // 今回は最も投稿数が多い1人（または複数いる場合は最初の1人）をベストとする
+                $topCount = $bestCameraman->total_count;
+                $allTopCameramen = Media::select(
+                    'uploader_uuid',
+                    'uploader_name',
+                    DB::raw("COUNT(*) as total_count")
+                )
+                ->whereIn('type', ['image', 'video'])
+                ->groupBy('uploader_uuid', 'uploader_name')
+                ->having('total_count', '=', $topCount)
+                ->get();
+
+                Cache::put('best_cameraman', $allTopCameramen->toArray());
+            }
+        }
+
+        return $media;
     }
 
     /**
