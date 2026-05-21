@@ -1,0 +1,1 @@
+/Users/tsukadatakahiro/.gemini/antigravity/skills/remotion-best-practices/SKILL.md

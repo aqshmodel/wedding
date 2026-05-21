@@ -1,0 +1,1 @@
+/Users/tsukadatakahiro/.gemini/antigravity/skills/xlsx/SKILL.md

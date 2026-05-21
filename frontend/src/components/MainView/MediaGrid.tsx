@@ -1,0 +1,47 @@
+import React from 'react';
+import { Video } from 'lucide-react';
+import { getStorageUrl } from '../../utils/api';
+import type { Media } from '../../types';
+
+interface MediaGridProps {
+  mediaList: Media[];
+  type: 'image' | 'video';
+  onMediaClick: (media: Media) => void;
+}
+
+const MediaGrid: React.FC<MediaGridProps> = ({ mediaList, type, onMediaClick }) => {
+  const filteredList = mediaList.filter(m => m.type === type);
+
+  return (
+    <div className="grid grid-cols-3 gap-1">
+      {filteredList.map((media) => (
+        <div 
+          key={media.id} 
+          className="aspect-square bg-gray-100 relative group cursor-pointer"
+          onClick={() => onMediaClick(media)}
+        >
+          {type === 'video' ? (
+            <>
+              <video
+                src={getStorageUrl(media.file_path!)}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <Video size={24} className="text-white drop-shadow-md" />
+              </div>
+            </>
+          ) : (
+            <img
+              src={getStorageUrl(media.thumbnail_path || media.file_path!)}
+              alt={media.message || "写真"}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export default MediaGrid;

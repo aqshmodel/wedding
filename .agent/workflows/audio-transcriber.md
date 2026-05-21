@@ -1,0 +1,1 @@
+/Users/tsukadatakahiro/.gemini/antigravity/skills/audio-transcriber/SKILL.md

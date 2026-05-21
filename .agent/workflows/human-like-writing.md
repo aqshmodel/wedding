@@ -1,0 +1,1 @@
+/Users/tsukadatakahiro/.gemini/antigravity/skills/human-like-writing/SKILL.md

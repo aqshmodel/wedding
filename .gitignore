@@ -1,0 +1,19 @@
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Project specific
+docs/
+
+# Editor/IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Subdirectories will use their own .gitignore files for node_modules, vendor, .env, etc.

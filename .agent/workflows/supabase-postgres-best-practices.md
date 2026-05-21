@@ -1,0 +1,1 @@
+/Users/tsukadatakahiro/.gemini/antigravity/skills/supabase-postgres-best-practices/SKILL.md

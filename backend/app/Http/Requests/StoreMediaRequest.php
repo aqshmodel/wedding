@@ -1,0 +1,45 @@
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class StoreMediaRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        return true; // 認証なしのパブリックアプリなのでtrue
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return [
+            'uploader_name' => 'required|string|max:255',
+            'message' => 'nullable|string',
+            'uploader_uuid' => 'required|string',
+            'guest_side' => 'required|in:groom,bride',
+            'type' => 'required|in:image,video,message',
+            'file' => 'nullable|file',
+        ];
+    }
+    
+    /**
+     * バリデーション後の追加チェック
+     */
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            if ($this->type === 'message' && empty($this->message)) {
+                $validator->errors()->add('message', 'メッセージを入力してください。');
+            }
+        });
+    }
+}
