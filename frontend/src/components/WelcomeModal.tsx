@@ -25,58 +25,57 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({ onClose }) => {
       }`}
     >
       <div 
-        className={`bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl transition-all duration-300 transform ${
+        className={`bg-white rounded-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden shadow-2xl transition-all duration-300 transform ${
           isVisible ? 'scale-100 opacity-100 translate-y-0' : 'scale-95 opacity-0 translate-y-4'
         }`}
       >
-        <div className="bg-tiffany p-6 text-white text-center relative">
+        <div className="bg-tiffany p-5 text-white text-center relative shrink-0">
           <button 
             onClick={handleClose}
             className="absolute top-4 right-4 text-white/80 hover:text-white transition-colors"
           >
             <X size={24} />
           </button>
-          <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Camera size={32} className="text-white" />
+          <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
+            <Camera size={28} className="text-white" />
           </div>
-          <h2 className="text-2xl font-bold mb-1">Welcome!</h2>
-          <p className="text-tiffany-light text-sm">Takahiro & Yuri Wedding</p>
+          <h2 className="text-xl font-bold tracking-wide">Takahiro & Yuri Wedding</h2>
         </div>
 
-        <div className="p-6 space-y-6 text-gray-700">
-          <p className="text-center font-medium">
+        <div className="p-5 space-y-5 text-gray-700 overflow-y-auto">
+          <p className="text-center font-medium text-sm sm:text-base">
             本日はご参加ありがとうございます！<br />
             皆さまが撮ってくれた写真や動画を<br />
             ぜひここでシェアしてください✨
           </p>
 
           <div className="space-y-4">
-            <div className="flex items-start gap-4">
-              <div className="bg-blue-100 p-2 rounded-full text-blue-500 shrink-0 mt-1">
-                <PlusCircle size={20} />
+            <div className="flex items-start gap-3">
+              <div className="bg-blue-100 p-2 rounded-full text-blue-500 shrink-0 mt-0.5">
+                <PlusCircle size={18} />
               </div>
               <div>
-                <h3 className="font-bold text-gray-900">投稿は右下の「＋」ボタンから</h3>
-                <p className="text-sm text-gray-600 mt-1">
+                <h3 className="font-bold text-gray-900 text-sm sm:text-base">投稿は右下の「＋」ボタンから</h3>
+                <p className="text-xs sm:text-sm text-gray-600 mt-1 leading-relaxed">
                   写真や動画はもちろん、お祝いのメッセージだけの投稿も大歓迎です！
                 </p>
               </div>
             </div>
 
-            <div className="flex items-start gap-4">
-              <div className="bg-pink-100 p-2 rounded-full text-pink-500 shrink-0 mt-1">
-                <Heart size={20} />
+            <div className="flex items-start gap-3">
+              <div className="bg-pink-100 p-2 rounded-full text-pink-500 shrink-0 mt-0.5">
+                <Heart size={18} />
               </div>
               <div>
-                <h3 className="font-bold text-gray-900">いいね＆ダウンロード</h3>
-                <p className="text-sm text-gray-600 mt-1">
+                <h3 className="font-bold text-gray-900 text-sm sm:text-base">いいね＆ダウンロード</h3>
+                <p className="text-xs sm:text-sm text-gray-600 mt-1 leading-relaxed">
                   素敵な写真には「いいね」を押したり、自分のスマホに保存（ダウンロード）することができます。
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="bg-gray-50 p-4 rounded-xl text-xs text-gray-500 space-y-2 border border-gray-100">
+          <div className="bg-gray-50 p-3 sm:p-4 rounded-xl text-[11px] sm:text-xs text-gray-500 space-y-1.5 border border-gray-100">
             <p className="font-bold text-gray-700 mb-1">【 お願い 】</p>
             <p>・他のゲストの方が写っている写真を個人のSNS等へ無断転載することはお控えください。</p>
             <p>・アップロードされた写真は、後日新郎新婦が大切に保存させていただきます。</p>
@@ -84,7 +83,7 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({ onClose }) => {
 
           <button
             onClick={handleClose}
-            className="w-full bg-tiffany hover:bg-tiffany-dark text-white font-bold py-4 rounded-xl transition-colors shadow-lg shadow-tiffany/30 active:scale-95"
+            className="w-full bg-tiffany hover:bg-tiffany-dark text-white font-bold py-3.5 rounded-xl transition-colors shadow-lg shadow-tiffany/30 active:scale-95 shrink-0 mt-4"
           >
             はじめる
           </button>
