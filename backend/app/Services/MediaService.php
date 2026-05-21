@@ -13,7 +13,7 @@ class MediaService
     /**
      * メディアの保存とサムネイル生成を行う
      */
-    public function storeMedia(array $data, ?UploadedFile $file): Media
+    public function storeMedia(array $data, ?UploadedFile $file, ?UploadedFile $thumbnailFile = null): Media
     {
         $path = null;
         $thumbnailDbPath = null;
@@ -23,6 +23,9 @@ class MediaService
 
             if ($data['type'] === 'image') {
                 $thumbnailDbPath = $this->generateThumbnail($file, $path);
+            } elseif ($data['type'] === 'video' && $thumbnailFile) {
+                // フロントエンドから送られてきたサムネイル画像を保存する
+                $thumbnailDbPath = $this->generateThumbnail($thumbnailFile, $path);
             }
         }
 
@@ -55,7 +58,9 @@ class MediaService
                 File::makeDirectory($thumbnailsDir, 0755, true);
             }
 
-            $thumbnailFilename = 'thumb_' . basename($storedPath);
+            // 元のファイル名から拡張子を除いたベース名を取得し、.jpgを付与
+            $baseName = pathinfo($storedPath, PATHINFO_FILENAME);
+            $thumbnailFilename = 'thumb_' . $baseName . '.jpg';
             $thumbnailFullPath = $thumbnailsDir . '/' . $thumbnailFilename;
             
             // 保存 (画質90)

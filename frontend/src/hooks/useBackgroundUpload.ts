@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import api from '../utils/api';
 import { getGuestUuid, getGuestSide } from '../utils/storage';
+import { generateVideoThumbnail } from '../utils/videoThumbnail';
 
 export interface UploadQueueItem {
   files: File[];
@@ -47,7 +48,17 @@ export const useBackgroundUpload = (onComplete: () => void) => {
           formData.append('message', uploadQueue.message);
           formData.append('uploader_uuid', getGuestUuid());
           formData.append('guest_side', getGuestSide() || 'groom');
-          formData.append('type', file.type.startsWith('video/') ? 'video' : 'image');
+          
+          const isVideo = file.type.startsWith('video/');
+          formData.append('type', isVideo ? 'video' : 'image');
+
+          if (isVideo) {
+            const thumbnailBlob = await generateVideoThumbnail(file);
+            if (thumbnailBlob) {
+              formData.append('thumbnail_file', thumbnailBlob, 'thumb.jpg');
+            }
+          }
+
           await api.post('/media', formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
           });

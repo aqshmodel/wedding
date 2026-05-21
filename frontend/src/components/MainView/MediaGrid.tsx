@@ -22,11 +22,20 @@ const MediaGrid: React.FC<MediaGridProps> = ({ mediaList, type, onMediaClick }) 
         >
           {type === 'video' ? (
             <>
-              <video
-                src={getStorageUrl(media.file_path!)}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              {media.thumbnail_path ? (
+                <img
+                  src={getStorageUrl(media.thumbnail_path)}
+                  alt={media.message || "動画サムネイル"}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+              ) : (
+                <video
+                  src={getStorageUrl(media.file_path!)}
+                  className="w-full h-full object-cover"
+                />
+              )}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none bg-black/10">
                 <Video size={24} className="text-white drop-shadow-md" />
               </div>
             </>

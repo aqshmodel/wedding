@@ -43,18 +43,21 @@ class MediaController extends Controller
 
         $isAll = $request->query('all') === 'true';
         $totalLikes = Media::sum('likes_count');
+        $totalPosts = Media::count(); // 全体の正確な投稿数を取得
         
         if ($isAll) {
             $media = $query->latest()->get();
             // ページネーションとレスポンス形式を合わせるため data でラップする
             return response()->json([
                 'data' => $media,
-                'total_likes' => $totalLikes
+                'total_likes' => $totalLikes,
+                'total_posts' => $totalPosts
             ]);
         } else {
             $media = $query->latest()->paginate(21);
             $responseArray = $media->toArray();
             $responseArray['total_likes'] = $totalLikes;
+            $responseArray['total_posts'] = $totalPosts;
             return response()->json($responseArray);
         }
     }
@@ -66,7 +69,8 @@ class MediaController extends Controller
     {
         $media = $this->mediaService->storeMedia(
             $request->validated(), 
-            $request->file('file')
+            $request->file('file'),
+            $request->file('thumbnail_file')
         );
 
         return response()->json([

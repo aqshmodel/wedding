@@ -31,6 +31,7 @@ const MainView: React.FC = () => {
   
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [totalLikes, setTotalLikes] = useState(0);
+  const [totalPosts, setTotalPosts] = useState(0);
 
   // カスタムフックの呼び出し
   const { uploadQueue, setUploadQueue } = useBackgroundUpload(() => {
@@ -80,6 +81,9 @@ const MainView: React.FC = () => {
       
       if (responseData.total_likes !== undefined) {
         setTotalLikes(responseData.total_likes);
+      }
+      if (responseData.total_posts !== undefined) {
+        setTotalPosts(responseData.total_posts);
       }
       
       setPageData(prev => ({ ...prev, [type]: page }));
@@ -152,7 +156,7 @@ const MainView: React.FC = () => {
   return (
     <div className="min-h-screen bg-white max-w-[1000px] mx-auto relative pb-20 shadow-xl overflow-hidden">
       <HeaderProfile 
-        mediaCount={mediaData['images'].length + mediaData['videos'].length + mediaData['messages'].length}
+        mediaCount={totalPosts}
         totalLikes={totalLikes}
         isDownloading={isDownloading}
         isMediaEmpty={mediaData['images'].length === 0}
