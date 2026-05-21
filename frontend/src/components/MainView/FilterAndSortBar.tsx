@@ -1,9 +1,9 @@
 import React from 'react';
 
 interface FilterAndSortBarProps {
-  guestSideFilter: 'all' | 'groom' | 'bride';
+  guestSideFilter: 'all' | 'groom' | 'bride' | 'mine';
   sortOrder: 'newest' | 'popular';
-  onFilterChange: (filter: 'all' | 'groom' | 'bride') => void;
+  onFilterChange: (filter: 'all' | 'groom' | 'bride' | 'mine') => void;
   onSortChange: (sort: 'newest' | 'popular') => void;
 }
 
@@ -14,7 +14,7 @@ const FilterAndSortBar: React.FC<FilterAndSortBarProps> = ({
   onSortChange
 }) => {
   // フィルター変更時、もし「All」が選ばれたらソート順も「newest」に戻す
-  const handleFilterClick = (filter: 'all' | 'groom' | 'bride') => {
+  const handleFilterClick = (filter: 'all' | 'groom' | 'bride' | 'mine') => {
     onFilterChange(filter);
     if (filter === 'all') {
       onSortChange('newest');
@@ -48,6 +48,12 @@ const FilterAndSortBar: React.FC<FilterAndSortBarProps> = ({
         className={`${baseChipStyle} ${guestSideFilter === 'bride' ? activeStyle : inactiveStyle}`}
       >
         新婦ゲスト
+      </button>
+      <button
+        onClick={() => handleFilterClick('mine')}
+        className={`${baseChipStyle} ${guestSideFilter === 'mine' ? activeStyle : inactiveStyle}`}
+      >
+        自分の投稿
       </button>
 
       <button

@@ -19,6 +19,7 @@ Route::post('/media/chunk', [MediaController::class, 'uploadChunk']);
 Route::get('/media/download-zip', [MediaController::class, 'downloadZip']);
 Route::get('/media/latest-id', [UpdateCheckController::class, 'check']);
 Route::post('/media/{id}/like', [LikeController::class, 'toggleLike']);
+Route::delete('/media/{id}', [MediaController::class, 'destroy']);
 
 Route::get('/settings', [SettingsController::class, 'index']);
 Route::post('/settings', [SettingsController::class, 'store']);

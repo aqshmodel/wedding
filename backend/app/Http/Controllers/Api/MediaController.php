@@ -191,8 +191,45 @@ class MediaController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id)
     {
-        //
+        $guestUuid = $request->input('guest_uuid');
+        
+        if (empty($guestUuid)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Missing guest_uuid'
+            ], 400);
+        }
+
+        $media = Media::find($id);
+
+        if (!$media) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Media not found'
+            ], 404);
+        }
+
+        // 認可: 投稿者本人であるか確認
+        if ($media->uploader_uuid !== $guestUuid) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized to delete this media'
+            ], 403);
+        }
+
+        try {
+            $this->mediaService->deleteMedia($media);
+            return response()->json([
+                'success' => true,
+                'message' => 'Media deleted successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete media'
+            ], 500);
+        }
     }
 }

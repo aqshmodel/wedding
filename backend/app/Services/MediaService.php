@@ -114,4 +114,43 @@ class MediaService
             return null;
         }
     }
+
+    /**
+     * メディアの削除（物理ファイル＋データベース）
+     */
+    public function deleteMedia(Media $media): void
+    {
+        try {
+            // 物理ファイルの削除
+            if ($media->file_path) {
+                // "/uploads/media/xxx" -> "uploads/media/xxx" にして public_path() を解決
+                $relativePath = ltrim($media->file_path, '/');
+                $fullPath = public_path($relativePath);
+                if (File::exists($fullPath)) {
+                    File::delete($fullPath);
+                }
+            }
+
+            if ($media->thumbnail_path) {
+                $relativePath = ltrim($media->thumbnail_path, '/');
+                $fullPath = public_path($relativePath);
+                if (File::exists($fullPath)) {
+                    File::delete($fullPath);
+                }
+            }
+
+            // ZIPアーカイブ破棄を促すため、最新メディアIDを意図的に更新する
+            // 削除によって構成が変わるため、既存のキャッシュZIPを作り直させる必要がある
+            Cache::put('latest_media_id', time());
+
+            // データベースから削除 (likes等のリレーションは必要ならカスケード削除される想定。もしくは手動削除)
+            // likesテーブルとのリレーションがあるため、まずは関連するlikesを削除
+            $media->likes()->delete();
+            $media->delete();
+
+        } catch (\Exception $e) {
+            \Log::error('Media deletion failed: ' . $e->getMessage());
+            throw $e;
+        }
+    }
 }

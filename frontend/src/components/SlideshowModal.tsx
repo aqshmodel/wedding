@@ -6,7 +6,7 @@ import type { Media } from '../types';
 
 interface SlideshowModalProps {
   initialMediaList: Media[];
-  guestSideFilter: 'all' | 'groom' | 'bride';
+  guestSideFilter: 'all' | 'groom' | 'bride' | 'mine';
   onClose: () => void;
 }
 
@@ -36,7 +36,11 @@ const SlideshowModal: React.FC<SlideshowModalProps> = ({ initialMediaList, guest
   
   // 表示対象を画像と動画のみ、かつフィルターに合致するものにする
   const slideTargets = mediaList.filter(m => {
-    if (guestSideFilter !== 'all' && m.guest_side !== guestSideFilter) return false;
+    if (guestSideFilter === 'mine') {
+      if (m.uploader_uuid !== getGuestUuid()) return false;
+    } else if (guestSideFilter !== 'all') {
+      if (m.guest_side !== guestSideFilter) return false;
+    }
     return m.type === 'image' || m.type === 'video';
   });
 

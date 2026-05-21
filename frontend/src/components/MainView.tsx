@@ -19,7 +19,7 @@ import MessageList from './MainView/MessageList';
 const MainView: React.FC = () => {
   type TabType = 'images' | 'videos' | 'messages';
   const [activeTab, setActiveTab] = useState<TabType>('images');
-  const [guestSideFilter, setGuestSideFilter] = useState<'all' | 'groom' | 'bride'>('all');
+  const [guestSideFilter, setGuestSideFilter] = useState<'all' | 'groom' | 'bride' | 'mine'>('all');
   const [sortOrder, setSortOrder] = useState<'newest' | 'popular'>('newest');
   
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
@@ -52,6 +52,7 @@ const MainView: React.FC = () => {
   const currentMediaList = mediaData[activeTab];
   const filteredMediaList = currentMediaList.filter(m => {
     if (guestSideFilter === 'all') return true;
+    if (guestSideFilter === 'mine') return m.uploader_uuid === getGuestUuid();
     return m.guest_side === guestSideFilter;
   }).sort((a, b) => {
     if (sortOrder === 'popular') {
@@ -142,6 +143,17 @@ const MainView: React.FC = () => {
     if (selectedMedia && selectedMedia.id === mediaId) {
       setSelectedMedia({ ...selectedMedia, is_liked: isLiked, likes_count: newCount });
     }
+  };
+
+  const handleMediaDelete = (deletedMediaId: number) => {
+    setMediaData(prev => {
+      const next = { ...prev };
+      (Object.keys(next) as TabType[]).forEach(key => {
+        next[key] = next[key].filter(m => m.id !== deletedMediaId);
+      });
+      return next;
+    });
+    setSelectedMedia(null);
   };
 
   // --------------------------------------------------------
@@ -242,6 +254,7 @@ const MainView: React.FC = () => {
           hasPrev={hasPrev}
           hasNext={hasNext}
           onNavigate={handleNavigate}
+          onDelete={handleMediaDelete}
         />
       )}
 

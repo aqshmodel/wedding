@@ -3,6 +3,8 @@ import { X, Heart, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getStorageUrl, API_URL } from '../utils/api';
 import type { Media } from '../types';
 import { getGuestUuid } from '../utils/storage';
+import { Trash2 } from 'lucide-react';
+import { useDeleteMedia } from '../hooks/useDeleteMedia';
 
 interface MediaDetailModalProps {
   media: Media;
@@ -11,15 +13,19 @@ interface MediaDetailModalProps {
   hasPrev?: boolean;
   hasNext?: boolean;
   onNavigate?: (direction: 'prev' | 'next') => void;
+  onDelete?: (mediaId: number) => void;
 }
 
-const MediaDetailModal: React.FC<MediaDetailModalProps> = ({ media, onClose, onLikeChange, hasPrev, hasNext, onNavigate }) => {
+const MediaDetailModal: React.FC<MediaDetailModalProps> = ({ media, onClose, onLikeChange, hasPrev, hasNext, onNavigate, onDelete }) => {
   const [isLiking, setIsLiking] = useState(false);
   const [localIsLiked, setLocalIsLiked] = useState(media.is_liked || false);
   const [localLikesCount, setLocalLikesCount] = useState(media.likes_count || 0);
 
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  
+  const { isDeleting, deleteMedia } = useDeleteMedia();
+  const isMyPost = media.uploader_uuid === getGuestUuid();
 
   // mediaが変更されたらローカル状態をリセット
   useEffect(() => {
@@ -118,6 +124,15 @@ const MediaDetailModal: React.FC<MediaDetailModalProps> = ({ media, onClose, onL
       onLikeChange(media.id, media.is_liked || false, media.likes_count || 0);
     } finally {
       setIsLiking(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (isDeleting) return;
+    const success = await deleteMedia(media.id);
+    if (success) {
+      if (onDelete) onDelete(media.id);
+      onClose();
     }
   };
 
@@ -224,6 +239,19 @@ const MediaDetailModal: React.FC<MediaDetailModalProps> = ({ media, onClose, onL
                 </div>
                 <span className="text-xs font-medium">保存</span>
               </button>
+
+              {isMyPost && (
+                <button 
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                  className="flex flex-col items-center gap-1 group"
+                >
+                  <div className="p-3 rounded-full bg-white/10 text-white/70 group-hover:bg-red-500/20 group-hover:text-red-400 group-hover:scale-105 transition-all duration-300">
+                    <Trash2 size={24} />
+                  </div>
+                  <span className="text-xs font-medium">削除</span>
+                </button>
+              )}
             </div>
           </div>
           
