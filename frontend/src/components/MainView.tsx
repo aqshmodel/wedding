@@ -268,18 +268,18 @@ const MainView: React.FC = () => {
 
       {/* バックグラウンドアップロードのトースト通知 */}
       {uploadQueue && uploadQueue.status !== 'idle' && (
-        <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 bg-gray-900/90 backdrop-blur-sm text-white px-6 py-3 rounded-full shadow-2xl z-50 flex items-center space-x-3 transition-all duration-300">
+        <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 bg-gray-900/90 backdrop-blur-sm text-white px-6 py-3 rounded-full shadow-2xl z-50 flex items-center space-x-3 transition-all duration-300 whitespace-nowrap min-w-max">
           {uploadQueue.status === 'uploading' ? (
             <>
-              <Loader2 className="w-5 h-5 animate-spin text-tiffany" />
-              <span className="text-sm font-medium">
+              <Loader2 className="w-5 flex-shrink-0 h-5 animate-spin text-tiffany" />
+              <span className="text-sm font-medium whitespace-nowrap">
                 アップロード中... {uploadQueue.currentIndex} / {uploadQueue.total}枚
               </span>
             </>
           ) : uploadQueue.status === 'completed' ? (
             <>
-              <CheckCircle2 className="w-5 h-5 text-green-400" />
-              <span className="text-sm font-medium">アップロード完了！</span>
+              <CheckCircle2 className="w-5 flex-shrink-0 h-5 text-green-400" />
+              <span className="text-sm font-medium whitespace-nowrap">アップロード完了！</span>
             </>
           ) : null}
         </div>
