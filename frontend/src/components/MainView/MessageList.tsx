@@ -116,7 +116,7 @@ const MessageList: React.FC<MessageListProps> = ({ mediaList, onLikeChange }) =>
 
               {/* Media Carousel */}
               {hasMedia && (
-                <div className="relative w-full flex overflow-x-auto snap-x snap-mandatory hide-scrollbar touch-pan-y">
+                <div className="relative w-full flex overflow-x-auto snap-x snap-mandatory hide-scrollbar">
                   {post.mediaItems.map((media, index) => {
                     // メッセージのみのtypeは除外してメディアだけ表示
                     if (media.type === 'message') return null;
