@@ -40,10 +40,10 @@ const MainView: React.FC = () => {
     fetchMedia(1, false);
   });
   const { isDownloading, handleBatchDownload } = useBatchDownload();
-  const { hasNewPosts, resetNotifier } = useNewPostsNotifier(totalPosts);
+  const { hasNewPosts, syncEtag } = useNewPostsNotifier(totalPosts);
 
   const handleNewPostsClick = () => {
-    resetNotifier();
+    syncEtag();
     fetchMedia(1, false, activeTab);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -93,6 +93,9 @@ const MainView: React.FC = () => {
       }
       if (responseData.total_posts !== undefined) {
         setTotalPosts(responseData.total_posts);
+      }
+      if (page === 1) {
+        syncEtag();
       }
       
       setPageData(prev => ({ ...prev, [type]: page }));

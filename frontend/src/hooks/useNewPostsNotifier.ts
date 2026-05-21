@@ -12,6 +12,7 @@ export const useNewPostsNotifier = (currentTotalPosts: number) => {
 
     let pollInterval = 15000; // 初期15秒
     let isChecking = false;
+    let isFirstCheck = etagRef.current === null; // 初回はEtagがないので通知を出さずに覚えるだけにする
 
     const checkUpdates = async () => {
       if (isChecking) return;
@@ -35,9 +36,12 @@ export const useNewPostsNotifier = (currentTotalPosts: number) => {
         } else if (res.status === 200) {
           // 変更あり
           etagRef.current = res.headers['etag'] || null;
-          // ここで最新の総数がフロントで持っているものより多ければ通知
-          // （※今回はlatest_media_idを返す設計にしたため、単に新しいEtagが来たら新着とみなす）
-          setHasNewPosts(true);
+          
+          if (!isFirstCheck) {
+            setHasNewPosts(true);
+          }
+          
+          isFirstCheck = false;
           pollInterval = 15000; // リセット
         }
       } catch (error) {
@@ -59,5 +63,11 @@ export const useNewPostsNotifier = (currentTotalPosts: number) => {
     setHasNewPosts(false);
   };
 
-  return { hasNewPosts, resetNotifier };
+  // 一覧をリロードした際などにETagをクリアして、次のポーリングで再同期させる
+  const syncEtag = () => {
+    etagRef.current = null;
+    setHasNewPosts(false);
+  };
+
+  return { hasNewPosts, resetNotifier, syncEtag };
 };
