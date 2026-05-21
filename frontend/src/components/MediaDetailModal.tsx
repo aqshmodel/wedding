@@ -197,21 +197,18 @@ const MediaDetailModal: React.FC<MediaDetailModalProps> = ({ media, onClose, onL
         <div className="max-w-3xl mx-auto">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-2">
                 <span className="font-bold text-lg truncate">{media.uploader_name}</span>
                 <span className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${
                   media.guest_side === 'groom' 
                     ? 'bg-blue-500/20 text-blue-200 border border-blue-500/30' 
                     : 'bg-pink-500/20 text-pink-200 border border-pink-500/30'
                 }`}>
-                  {media.guest_side === 'groom' ? '新郎ゲスト' : '新婦ゲスト'}
+                  {media.uploader_name === '塚田崇博' ? '新郎' : 
+                   media.uploader_name === '塚田友里' ? '新婦' : 
+                   media.guest_side === 'groom' ? '新郎ゲスト' : '新婦ゲスト'}
                 </span>
               </div>
-              {media.message && (
-                <p className="text-white/90 text-sm leading-relaxed mb-4 break-words">
-                  {media.message}
-                </p>
-              )}
             </div>
 
             <div className="flex items-center gap-6">
@@ -254,6 +251,15 @@ const MediaDetailModal: React.FC<MediaDetailModalProps> = ({ media, onClose, onL
               )}
             </div>
           </div>
+          
+          {/* メッセージテキストをアクションボタンの下に配置 */}
+          {media.message && (
+            <div className="mt-4 border-t border-white/20 pt-4">
+              <p className="text-white/90 text-sm leading-relaxed break-words whitespace-pre-wrap">
+                {media.message}
+              </p>
+            </div>
+          )}
           
           {/* Swipe Hint (Mobile Only) */}
           {(hasPrev || hasNext) && (

@@ -124,7 +124,9 @@ const MessageList: React.FC<MessageListProps> = ({ mediaList, onLikeChange, onDe
                 <div>
                   <p className="font-bold text-sm text-gray-900 leading-none">{post.uploader_name}</p>
                   <p className="text-xs text-gray-500 mt-1">
-                    {post.guest_side === 'groom' ? '新郎側ゲスト' : '新婦側ゲスト'}
+                    {post.uploader_name === '塚田崇博' ? '新郎' :
+                     post.uploader_name === '塚田友里' ? '新婦' :
+                     post.guest_side === 'groom' ? '新郎側ゲスト' : '新婦側ゲスト'}
                   </p>
                 </div>
               </div>

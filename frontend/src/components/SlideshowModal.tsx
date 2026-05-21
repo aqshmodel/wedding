@@ -116,7 +116,9 @@ const SlideshowModal: React.FC<SlideshowModalProps> = ({ initialMediaList, guest
                 ? 'bg-blue-500/20 text-blue-200 border-blue-500/30' 
                 : 'bg-pink-500/20 text-pink-200 border-pink-500/30'
             }`}>
-              {currentMedia.guest_side === 'groom' ? '新郎ゲスト' : '新婦ゲスト'}
+              {currentMedia.uploader_name === '塚田崇博' ? '新郎' :
+               currentMedia.uploader_name === '塚田友里' ? '新婦' :
+               currentMedia.guest_side === 'groom' ? '新郎ゲスト' : '新婦ゲスト'}
             </span>
           </div>
           {currentMedia.message && (
