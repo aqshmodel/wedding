@@ -144,7 +144,7 @@ const MessageList: React.FC<MessageListProps> = ({ mediaList, onLikeChange, onDe
                           <>
                             <video
                               src={getStorageUrl(media.file_path!)}
-                              className="w-full h-auto object-cover max-h-[70vh] sm:max-h-[85vh]"
+                              className="w-full h-auto"
                               controls
                               preload="metadata"
                             />
@@ -154,7 +154,7 @@ const MessageList: React.FC<MessageListProps> = ({ mediaList, onLikeChange, onDe
                           <img
                             src={getStorageUrl(media.thumbnail_path || media.file_path!)}
                             alt={`Photo by ${post.uploader_name}`}
-                            className="w-full h-auto object-cover max-h-[70vh] sm:max-h-[85vh]"
+                            className="w-full h-auto"
                             loading="lazy"
                           />
                         )}
