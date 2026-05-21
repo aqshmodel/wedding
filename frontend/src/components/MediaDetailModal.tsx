@@ -214,7 +214,7 @@ const MediaDetailModal: React.FC<MediaDetailModalProps> = ({ media, onClose, onL
               )}
             </div>
 
-            <div className="flex flex-col items-center gap-4">
+            <div className="flex items-center gap-6">
               <button 
                 onClick={handleLike}
                 disabled={isLiking}

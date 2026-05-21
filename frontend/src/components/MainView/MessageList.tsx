@@ -1,12 +1,15 @@
 import React, { useMemo, useState } from 'react';
-import { Heart } from 'lucide-react';
+import { Heart, Trash2 } from 'lucide-react';
 import type { Media } from '../../types';
 import { getStorageUrl } from '../../utils/api';
 import api from '../../utils/api';
+import { getGuestUuid } from '../../utils/storage';
+import { useDeleteMedia } from '../../hooks/useDeleteMedia';
 
 interface MessageListProps {
   mediaList: Media[];
   onLikeChange: (mediaId: number, isLiked: boolean, newCount: number) => void;
+  onDelete?: (mediaId: number) => void;
 }
 
 interface FeedPost {
@@ -19,7 +22,10 @@ interface FeedPost {
   primaryMedia: Media; // 代表メディア（1枚目）いいねの基準に使用
 }
 
-const MessageList: React.FC<MessageListProps> = ({ mediaList, onLikeChange }) => {
+const MessageList: React.FC<MessageListProps> = ({ mediaList, onLikeChange, onDelete }) => {
+  const guestUuid = getGuestUuid();
+  const { isDeleting, deleteMedia } = useDeleteMedia();
+
   // 1. メッセージがある投稿のみをフィルタリング
   const messagesOnly = mediaList.filter(m => !!m.message);
 
@@ -81,6 +87,15 @@ const MessageList: React.FC<MessageListProps> = ({ mediaList, onLikeChange }) =>
     }
   };
 
+  const handleDelete = async (post: FeedPost) => {
+    if (isDeleting) return;
+    const success = await deleteMedia(post.primaryMedia.id);
+    if (success && onDelete) {
+      // グループ化されている全てのメディアをローカルstateから削除する
+      post.mediaItems.forEach(m => onDelete(m.id));
+    }
+  };
+
   if (feedPosts.length === 0) {
     return (
       <div className="text-center text-gray-500 py-16">
@@ -112,6 +127,16 @@ const MessageList: React.FC<MessageListProps> = ({ mediaList, onLikeChange }) =>
                     {post.guest_side === 'groom' ? '新郎側ゲスト' : '新婦側ゲスト'}
                   </p>
                 </div>
+                {post.uploader_uuid === guestUuid && (
+                  <button
+                    onClick={() => handleDelete(post)}
+                    disabled={isDeleting}
+                    className="ml-auto text-gray-400 hover:text-red-500 transition-colors p-2"
+                    title="削除"
+                  >
+                    <Trash2 size={20} />
+                  </button>
+                )}
               </div>
 
               {/* Media Carousel */}

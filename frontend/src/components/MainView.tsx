@@ -200,7 +200,7 @@ const MainView: React.FC = () => {
       <div className="bg-white min-h-[50vh]">
         {activeTab === 'images' && <MediaGrid mediaList={filteredMediaList} type="image" onMediaClick={setSelectedMedia} />}
         {activeTab === 'videos' && <MediaGrid mediaList={filteredMediaList} type="video" onMediaClick={setSelectedMedia} />}
-        {activeTab === 'messages' && <MessageList mediaList={filteredMediaList} onLikeChange={handleLikeChange} />}
+        {activeTab === 'messages' && <MessageList mediaList={filteredMediaList} onLikeChange={handleLikeChange} onDelete={handleMediaDelete} />}
 
         {/* Load More Button */}
         {hasMoreData[activeTab] && (
