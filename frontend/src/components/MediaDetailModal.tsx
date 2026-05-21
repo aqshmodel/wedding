@@ -138,7 +138,7 @@ const MediaDetailModal: React.FC<MediaDetailModalProps> = ({ media, onClose, onL
 
   return (
     <div 
-      className="fixed inset-0 bg-black z-[110] flex flex-col"
+      className="fixed inset-0 bg-black z-[110] flex flex-col touch-none overscroll-none"
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEndEvent}
@@ -252,7 +252,11 @@ const MediaDetailModal: React.FC<MediaDetailModalProps> = ({ media, onClose, onL
           
           {/* メッセージテキストをアクションボタンの下に配置（長文の場合はスクロール） */}
           {media.message && (
-            <div className="mt-4 border-t border-white/20 pt-4 max-h-[25vh] overflow-y-auto pr-2">
+            <div 
+              className="mt-4 border-t border-white/20 pt-4 max-h-[25vh] overflow-y-auto pr-2 touch-pan-y"
+              onTouchStart={(e) => e.stopPropagation()}
+              onTouchMove={(e) => e.stopPropagation()}
+            >
               <p className="text-white/90 text-sm leading-relaxed break-words whitespace-pre-wrap">
                 {media.message}
               </p>
