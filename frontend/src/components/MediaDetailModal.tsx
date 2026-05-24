@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Heart, Download, ChevronLeft, ChevronRight } from 'lucide-react';
-import { getStorageUrl, API_URL } from '../utils/api';
+import api, { getStorageUrl } from '../utils/api';
 import type { Media } from '../types';
 import { getGuestUuid } from '../utils/storage';
 import { Trash2 } from 'lucide-react';
@@ -19,7 +19,7 @@ interface MediaDetailModalProps {
 const MediaDetailModal: React.FC<MediaDetailModalProps> = ({ media, onClose, onLikeChange, hasPrev, hasNext, onNavigate, onDelete }) => {
   const [isLiking, setIsLiking] = useState(false);
   const [localIsLiked, setLocalIsLiked] = useState(media.is_liked || false);
-  const [localLikesCount, setLocalLikesCount] = useState(media.likes_count || 0);
+  const [localLikesCount, setLocalLikesCount] = useState(Number(media.likes_count) || 0);
 
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
@@ -30,7 +30,7 @@ const MediaDetailModal: React.FC<MediaDetailModalProps> = ({ media, onClose, onL
   // mediaが変更されたらローカル状態をリセット
   useEffect(() => {
     setLocalIsLiked(media.is_liked || false);
-    setLocalLikesCount(media.likes_count || 0);
+    setLocalLikesCount(Number(media.likes_count) || 0);
   }, [media]);
 
   // キーボードナビゲーション
@@ -89,39 +89,28 @@ const MediaDetailModal: React.FC<MediaDetailModalProps> = ({ media, onClose, onL
     
     // 楽観的UI更新
     const newIsLiked = !localIsLiked;
-    const newCount = localIsLiked ? Math.max(0, localLikesCount - 1) : localLikesCount + 1;
+    const newCount = localIsLiked ? Math.max(0, Number(localLikesCount) - 1) : Number(localLikesCount) + 1;
     
     setLocalIsLiked(newIsLiked);
     setLocalLikesCount(newCount);
     onLikeChange(media.id, newIsLiked, newCount);
 
     try {
-      const response = await fetch(`${API_URL}/media/${media.id}/like`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          guest_uuid: getGuestUuid()
-        })
+      const response = await api.post(`/media/${media.id}/like`, {
+        guest_uuid: getGuestUuid()
       });
       
-      if (!response.ok) {
-        throw new Error('Failed to toggle like');
-      }
-      
-      const data = await response.json();
+      const data = response.data;
       // サーバーからの正確な値で更新
       setLocalIsLiked(data.liked);
-      setLocalLikesCount(data.likes_count);
-      onLikeChange(media.id, data.liked, data.likes_count);
+      setLocalLikesCount(Number(data.likes_count));
+      onLikeChange(media.id, data.liked, Number(data.likes_count));
     } catch (error) {
       console.error('Like error:', error);
       // エラー時は元に戻す
       setLocalIsLiked(media.is_liked || false);
-      setLocalLikesCount(media.likes_count || 0);
-      onLikeChange(media.id, media.is_liked || false, media.likes_count || 0);
+      setLocalLikesCount(Number(media.likes_count) || 0);
+      onLikeChange(media.id, media.is_liked || false, Number(media.likes_count) || 0);
     } finally {
       setIsLiking(false);
     }

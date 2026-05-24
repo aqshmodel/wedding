@@ -50,7 +50,7 @@ const AdminView: React.FC = () => {
     setOpeningVisible(newValue);
     setIsSaving(true);
     try {
-      await api.post('/settings', { opening_movie_visible: newValue, profile_movie_visible: profileVisible });
+      await api.post('/settings', { opening_movie_visible: newValue, profile_movie_visible: profileVisible, best_cameraman_visible: bestCameramanVisible });
     } catch (error) {
       console.error('Failed to update settings', error);
       setOpeningVisible(!newValue); // revert

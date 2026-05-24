@@ -31,17 +31,78 @@ class MediaController extends Controller
     {
         $type = $request->query('type'); // 'image', 'video', 'message'
         
+        $guestUuid = $request->query('guest_uuid');
+
+        if ($type === 'message') {
+            // メッセージタブ用: batch_id単位でグループ化してページネーション
+            $paginator = \Illuminate\Support\Facades\DB::table('media')
+                ->select('batch_id', \Illuminate\Support\Facades\DB::raw('MAX(created_at) as latest_created_at'))
+                ->whereNotNull('message')
+                ->where('message', '!=', '')
+                ->whereNotNull('batch_id')
+                ->groupBy('batch_id')
+                ->orderBy('latest_created_at', 'desc')
+                ->paginate(10);
+            
+            $batchIds = $paginator->pluck('batch_id');
+
+            // 取得したバッチに属するすべてのMediaと、そこに紐づくコメントを取得
+            $mediaList = Media::with(['comments' => function ($query) use ($guestUuid) {
+                    $query->orderBy('created_at', 'asc');
+                    if ($guestUuid) {
+                        $query->withExists(['likes as is_liked' => function ($q) use ($guestUuid) {
+                            $q->where('guest_uuid', $guestUuid);
+                        }]);
+                    }
+                    $query->with(['replies' => function ($q) use ($guestUuid) {
+                        $q->orderBy('created_at', 'asc');
+                        if ($guestUuid) {
+                            $q->withExists(['likes as is_liked' => function ($q2) use ($guestUuid) {
+                                $q2->where('guest_uuid', $guestUuid);
+                            }]);
+                        }
+                    }]);
+                }])
+                ->whereIn('batch_id', $batchIds)
+                ->orderBy('created_at', 'desc')
+                ->get();
+            
+            if ($guestUuid) {
+                $mediaList->loadExists(['likes as is_liked' => function ($q) use ($guestUuid) {
+                    $q->where('guest_uuid', $guestUuid);
+                }]);
+            }
+
+            $totalLikes = Media::sum('likes_count');
+            $totalPosts = Media::count(); // すべてのタブで全体の正確な投稿数を返す
+
+            return response()->json([
+                'current_page' => $paginator->currentPage(),
+                'data' => $mediaList,
+                'first_page_url' => $paginator->url(1),
+                'from' => $paginator->firstItem(),
+                'last_page' => $paginator->lastPage(),
+                'last_page_url' => $paginator->url($paginator->lastPage()),
+                'next_page_url' => $paginator->nextPageUrl(),
+                'path' => $paginator->path(),
+                'per_page' => $paginator->perPage(),
+                'prev_page_url' => $paginator->previousPageUrl(),
+                'to' => $paginator->lastItem(),
+                'total' => $paginator->total(),
+                'total_likes' => $totalLikes,
+                'total_posts' => $totalPosts
+            ]);
+        }
+
+        // image, videoの場合（既存の処理）
         $query = Media::query();
         
         if ($type === 'image') {
             $query->where('type', 'image');
         } elseif ($type === 'video') {
             $query->where('type', 'video');
-        } elseif ($type === 'message') {
-            $query->whereNotNull('message')->where('message', '!=', '');
         }
 
-        $guestUuid = $request->query('guest_uuid');
         if ($guestUuid) {
             $query->withExists(['likes as is_liked' => function ($q) use ($guestUuid) {
                 $q->where('guest_uuid', $guestUuid);
@@ -54,7 +115,6 @@ class MediaController extends Controller
         
         if ($isAll) {
             $media = $query->latest()->get();
-            // ページネーションとレスポンス形式を合わせるため data でラップする
             return response()->json([
                 'data' => $media,
                 'total_likes' => $totalLikes,
@@ -125,6 +185,7 @@ class MediaController extends Controller
                     'message' => $request->input('message'),
                     'uploader_uuid' => $request->input('uploader_uuid'),
                     'guest_side' => $request->input('guest_side'),
+                    'batch_id' => $request->input('batch_id'),
                 ];
 
                 $media = $this->mediaService->storeMedia(

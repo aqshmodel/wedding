@@ -27,6 +27,7 @@ class StoreMediaRequest extends FormRequest
             'uploader_uuid' => 'required|string',
             'guest_side' => 'required|in:groom,bride',
             'type' => 'required|in:image,video,message',
+            'batch_id' => 'nullable|string|uuid',
             'file' => 'nullable|file|mimes:jpeg,png,jpg,webp,heic,heif,mp4,mov,qt,avi,m4v,3gp,3g2,webm,mkv,mp3,aac,flac,alac,m4a',
             'thumbnail_file' => 'nullable|file|image|mimes:jpeg,png,jpg,webp',
         ];

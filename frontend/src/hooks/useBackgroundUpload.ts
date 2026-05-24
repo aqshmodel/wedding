@@ -13,6 +13,7 @@ export interface UploadQueueItem {
   currentIndex: number;
   isUploading: boolean;
   status: 'idle' | 'uploading' | 'completed' | 'error';
+  batchId?: string;
 }
 
 export const useBackgroundUpload = (onComplete: () => void) => {
@@ -41,6 +42,7 @@ export const useBackgroundUpload = (onComplete: () => void) => {
           formData.append('uploader_uuid', getGuestUuid());
           formData.append('guest_side', getGuestSide() || 'groom');
           formData.append('type', 'message');
+          if (uploadQueue.batchId) formData.append('batch_id', uploadQueue.batchId);
           await api.post('/media', formData);
         } else if (file) {
           const formData = new FormData();
@@ -49,6 +51,7 @@ export const useBackgroundUpload = (onComplete: () => void) => {
           formData.append('message', uploadQueue.message);
           formData.append('uploader_uuid', getGuestUuid());
           formData.append('guest_side', getGuestSide() || 'groom');
+          if (uploadQueue.batchId) formData.append('batch_id', uploadQueue.batchId);
           
           const isVideo = file.type.startsWith('video/');
           const sessionId = Date.now().toString() + Math.random().toString(36).substring(7);
@@ -68,7 +71,8 @@ export const useBackgroundUpload = (onComplete: () => void) => {
               uploaderName: uploadQueue.name,
               uploaderUuid: getGuestUuid(),
               guestSide: getGuestSide() || 'groom',
-              message: uploadQueue.message
+              message: uploadQueue.message,
+              batchId: uploadQueue.batchId
             });
 
             await chunkUploader.upload();

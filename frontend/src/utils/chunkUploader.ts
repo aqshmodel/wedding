@@ -10,6 +10,7 @@ interface ChunkUploadOptions {
   message?: string;
   chunkSize?: number; // default 5MB
   maxRetries?: number; // default 3
+  batchId?: string;
 }
 
 export class ChunkUploader {
@@ -22,6 +23,7 @@ export class ChunkUploader {
   private message?: string;
   private chunkSize: number;
   private maxRetries: number;
+  private batchId?: string;
 
   constructor(options: ChunkUploadOptions) {
     this.file = options.file;
@@ -33,6 +35,7 @@ export class ChunkUploader {
     this.message = options.message;
     this.chunkSize = options.chunkSize || 5 * 1024 * 1024; // 5MB
     this.maxRetries = options.maxRetries || 3;
+    this.batchId = options.batchId;
   }
 
   /**
@@ -81,6 +84,7 @@ export class ChunkUploader {
       formData.append('guest_side', this.guestSide);
       if (this.message) formData.append('message', this.message);
       if (this.thumbnailFile) formData.append('thumbnail_file', this.thumbnailFile);
+      if (this.batchId) formData.append('batch_id', this.batchId);
     }
 
     try {

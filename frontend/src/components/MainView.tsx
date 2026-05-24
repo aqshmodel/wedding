@@ -90,7 +90,7 @@ const MainView: React.FC = () => {
       }
       
       if (responseData.total_likes !== undefined) {
-        setTotalLikes(responseData.total_likes);
+        setTotalLikes(Number(responseData.total_likes));
       }
       if (responseData.total_posts !== undefined) {
         setTotalPosts(responseData.total_posts);
@@ -130,14 +130,14 @@ const MainView: React.FC = () => {
       (Object.keys(next) as TabType[]).forEach(key => {
         next[key] = next[key].map(m => {
           if (m.id === mediaId) {
-            diff = newCount - m.likes_count;
-            return { ...m, is_liked: isLiked, likes_count: newCount };
+            diff = Number(newCount) - Number(m.likes_count);
+            return { ...m, is_liked: isLiked, likes_count: Number(newCount) };
           }
           return m;
         });
       });
       
-      setTotalLikes(t => t + diff);
+      setTotalLikes(t => Number(t) + diff);
       return next;
     });
     if (selectedMedia && selectedMedia.id === mediaId) {
@@ -240,7 +240,8 @@ const MainView: React.FC = () => {
               total: Math.max(files.length, 1),
               currentIndex: 0,
               isUploading: true,
-              status: 'uploading'
+              status: 'uploading',
+              batchId: crypto.randomUUID()
             });
           }}
         />

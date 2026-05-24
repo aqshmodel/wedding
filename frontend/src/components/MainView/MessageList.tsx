@@ -5,6 +5,7 @@ import { getStorageUrl } from '../../utils/api';
 import api from '../../utils/api';
 import { getGuestUuid } from '../../utils/storage';
 import { useDeleteMedia } from '../../hooks/useDeleteMedia';
+import CommentSection from './CommentSection';
 
 interface MessageListProps {
   mediaList: Media[];
@@ -20,6 +21,7 @@ interface FeedPost {
   message: string;
   mediaItems: Media[]; // グループ化されたメディア
   primaryMedia: Media; // 代表メディア（1枚目）いいねの基準に使用
+  comments: import('../../types').Comment[];
 }
 
 const MessageList: React.FC<MessageListProps> = ({ mediaList, onLikeChange, onDelete }) => {
@@ -29,37 +31,31 @@ const MessageList: React.FC<MessageListProps> = ({ mediaList, onLikeChange, onDe
   // 1. メッセージがある投稿のみをフィルタリング
   const messagesOnly = mediaList.filter(m => !!m.message);
 
-  // 2. 連続する同じユーザー・同じメッセージをグルーピング
+  // 2. batch_idでグルーピング
   const feedPosts = useMemo(() => {
-    const posts: FeedPost[] = [];
-    if (messagesOnly.length === 0) return posts;
-
-    let currentGroup: FeedPost | null = null;
+    const postsMap = new Map<string, FeedPost>();
+    if (messagesOnly.length === 0) return [];
 
     messagesOnly.forEach((media) => {
-      // 直前の投稿と同じユーザー＆同じメッセージならまとめる
-      if (
-        currentGroup &&
-        currentGroup.uploader_uuid === media.uploader_uuid &&
-        currentGroup.message === media.message
-      ) {
-        currentGroup.mediaItems.push(media);
+      const batchId = media.batch_id || `fallback_${media.id}`;
+      
+      if (postsMap.has(batchId)) {
+        postsMap.get(batchId)!.mediaItems.push(media);
       } else {
-        // 新しいグループを作成
-        currentGroup = {
-          id: `feed_${media.id}`,
+        postsMap.set(batchId, {
+          id: batchId,
           uploader_name: media.uploader_name,
           uploader_uuid: media.uploader_uuid,
           guest_side: media.guest_side,
           message: media.message!,
           mediaItems: [media],
           primaryMedia: media,
-        };
-        posts.push(currentGroup);
+          comments: media.comments || [],
+        });
       }
     });
 
-    return posts;
+    return Array.from(postsMap.values());
   }, [messagesOnly]);
 
   const [animatingLikeId, setAnimatingLikeId] = useState<number | null>(null);
@@ -79,7 +75,7 @@ const MessageList: React.FC<MessageListProps> = ({ mediaList, onLikeChange, onDe
     }
 
     try {
-      await api.post(`/media/${media.id}/like`);
+      await api.post(`/media/${media.id}/like`, { guest_uuid: guestUuid });
     } catch (error) {
       console.error('Failed to toggle like:', error);
       // エラー時は元に戻す
@@ -213,6 +209,9 @@ const MessageList: React.FC<MessageListProps> = ({ mediaList, onLikeChange, onDe
                   <span className="text-gray-800 whitespace-pre-wrap">{post.message}</span>
                 </div>
               </div>
+
+              {/* Comments Section */}
+              <CommentSection batchId={post.id} initialComments={post.comments} />
             </article>
           );
         })}

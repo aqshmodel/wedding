@@ -21,6 +21,10 @@ Route::get('/media/latest-id', [UpdateCheckController::class, 'check']);
 Route::post('/media/{id}/like', [LikeController::class, 'toggleLike']);
 Route::delete('/media/{id}', [MediaController::class, 'destroy']);
 
+Route::post('/comments', [\App\Http\Controllers\Api\CommentController::class, 'store']);
+Route::post('/comments/{id}/like', [\App\Http\Controllers\Api\CommentController::class, 'toggleLike']);
+Route::delete('/comments/{id}', [\App\Http\Controllers\Api\CommentController::class, 'destroy']);
+
 Route::get('/settings', [SettingsController::class, 'index']);
 Route::post('/settings', [SettingsController::class, 'store']);
 
